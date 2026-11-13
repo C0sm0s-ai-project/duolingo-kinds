@@ -16,6 +16,8 @@ html,body{margin:0;height:100%;color:var(--cafe);overflow:hidden;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='800' viewBox='0 0 400 800'%3E%3Ccircle cx='350' cy='70' r='26' fill='none' stroke='%23FFC95C' stroke-width='6' opacity='.7'/%3E%3Cpath d='M350 22v-14M350 118v14M302 70h-14M398 70h14M316 36l-10-10M384 104l10 10M316 104l-10 10M384 36l10-10' stroke='%23FFC95C' stroke-width='6' stroke-linecap='round' opacity='.7'/%3E%3Cpath d='M18 330q20-26 40 0t40 0 40 0' fill='none' stroke='%2378C7C0' stroke-width='6' stroke-linecap='round' opacity='.5'/%3E%3Cpath d='M270 560q20-26 40 0t40 0' fill='none' stroke='%23F4775F' stroke-width='6' stroke-linecap='round' opacity='.35'/%3E%3Cpath d='M30 640l14 14M44 640l-14 14' stroke='%23F4C4A8' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='60' cy='180' r='7' fill='%23F4C4A8'/%3E%3Ccircle cx='345' cy='300' r='6' fill='%2378C7C0' opacity='.7'/%3E%3Ccircle cx='320' cy='700' r='8' fill='%23FFC95C' opacity='.8'/%3E%3C/svg%3E");
   background-size:cover;background-position:center}
 #app{height:100%;display:flex;flex-direction:column;padding:10px 14px 0;max-width:520px;margin:0 auto}
+#app.enter{animation:entra .32s ease-out}
+@keyframes entra{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 button{font:inherit;font-weight:600;color:var(--cafe);border:0;cursor:pointer}
 img{-webkit-user-drag:none;pointer-events:none}
 h1,h2{font-weight:700}
@@ -23,35 +25,55 @@ h1,h2{font-weight:700}
 /* Barra de racha */
 header{display:flex;align-items:center;gap:10px}
 .streak{font-size:24px;font-weight:700;background:var(--durazno);border:3px solid var(--cafe);border-radius:24px;padding:1px 14px;box-shadow:0 3px 0 var(--cafe)}
+.streak .fl{display:inline-block;animation:llama 1.6s ease-in-out infinite;transform-origin:50% 90%}
+@keyframes llama{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.18) rotate(4deg)}}
 .bar{flex:1;height:22px;background:var(--papel);border:3px solid var(--cafe);border-radius:12px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--amarillo);border-right:3px solid var(--cafe);transition:width .6s}
-.goal{font-size:32px}
+.bar i{display:block;height:100%;background:var(--amarillo);border-right:3px solid var(--cafe);transition:width .9s cubic-bezier(.2,.9,.3,1)}
+.goal{height:36px;display:flex;align-items:center}
+.goal svg{height:34px;width:auto;display:block}
+
+/* Lorito (con sus accesorios dibujados encima) */
+.lw{position:relative;display:inline-block;line-height:0}
+.lw .lp{height:100%;width:auto;display:block}
+.lw.m{height:100%;animation:bob 2.4s ease-in-out infinite}
+.lw.l{height:min(20vh,150px);animation:bob 2.6s ease-in-out infinite}
+.lw.f{height:min(28vh,220px);margin-top:34px;animation:pop .8s}
+.acs{position:absolute;inset:0;pointer-events:none}
+.ac{position:absolute;display:block;animation:acin .5s cubic-bezier(.3,1.6,.5,1) both}
+.ac svg{display:block;width:100%;height:auto;overflow:visible}
+.ac.hat{transform:translate(-50%,-100%) rotate(var(--r));transform-origin:50% 100%}
+.ac.gl,.ac.tr{transform:translate(-50%,-50%) rotate(var(--r));transform-origin:50% 50%}
+.ac.still{animation:none}
+@keyframes acin{from{opacity:0;scale:.3}to{opacity:1;scale:1}}
+@keyframes bob{50%{transform:translateY(-6px) rotate(2deg)}}
 
 /* Lorito + globo de diálogo */
-.hero{display:flex;align-items:center;gap:6px;margin:6px 0 2px}
+.hero{display:flex;align-items:center;gap:6px;margin:30px 0 2px}
 .mascot{position:relative;flex:0 0 auto;height:min(19vh,138px);width:min(34vw,128px);text-align:center}
-.mascot .pic{height:100%;width:auto;max-width:100%;animation:bob 2.4s ease-in-out infinite}
-.acc{position:absolute;left:50%;top:-10px;transform:translateX(-5%);font-size:34px;z-index:2}
-@keyframes bob{50%{transform:translateY(-6px) rotate(2deg)}}
-.hablando .pic{animation:hablar .5s ease-in-out 3}
-@keyframes hablar{50%{transform:scale(1.1)}}
-.bubble{position:relative;flex:1;background:var(--papel);border:3px solid var(--cafe);border-radius:20px;padding:10px 14px;font-size:18px;line-height:1.2;box-shadow:0 4px 0 var(--cafe)}
+.hablando .lw{animation:hablar .5s ease-in-out 3}
+@keyframes hablar{50%{transform:scale(1.1) rotate(-3deg)}}
+.bubble{position:relative;flex:1;background:var(--papel);border:3px solid var(--cafe);border-radius:20px;padding:10px 14px;font-size:18px;line-height:1.2;box-shadow:0 4px 0 var(--cafe);animation:globo .5s .15s cubic-bezier(.3,1.5,.5,1) both;transform-origin:0 50%}
+@keyframes globo{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 .bubble:before{content:"";position:absolute;left:-12px;top:50%;margin-top:-9px;border:9px solid transparent;border-right:12px solid var(--cafe);border-left:0}
 .bubble:after{content:"";position:absolute;left:-7px;top:50%;margin-top:-7px;border:7px solid transparent;border-right:9px solid var(--papel);border-left:0}
 
 /* Camino de lecciones */
-.path{flex:1;overflow-y:auto;overflow-x:hidden;margin:4px -14px 0;padding:0 14px}
+.path{flex:1;overflow-y:auto;overflow-x:hidden;margin:4px -14px 0;padding:0 14px;scroll-behavior:smooth}
 .pin{position:relative;margin:0 auto}
 .pin svg{position:absolute;left:0;top:0}
 .trail{fill:none;stroke:var(--cafe);stroke-width:5;stroke-linecap:round;stroke-dasharray:2 14;opacity:.45}
 .node{position:absolute;width:96px;height:96px;border-radius:50%;background:var(--coral);border:4px solid var(--cafe);
-  box-shadow:0 7px 0 var(--cafe);display:flex;align-items:center;justify-content:center;font-size:44px;padding:0}
+  box-shadow:0 7px 0 var(--cafe);display:flex;align-items:center;justify-content:center;font-size:44px;padding:0;
+  animation:nodoin .5s var(--d,0ms) cubic-bezier(.3,1.5,.5,1) both}
+@keyframes nodoin{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}
 .node:active{transform:translateY(5px);box-shadow:0 2px 0 var(--cafe)}
 .node.hecho{background:var(--amarillo)}
 .node.lock{background:var(--salvia);opacity:.85}
-.node.next{animation:latido 1.6s ease-in-out infinite}
-@keyframes latido{50%{transform:scale(1.07)}}
-.nl{position:absolute;width:150px;text-align:center;font-size:16px;font-weight:700;line-height:1.1}
+.node.next{animation:nodoin .5s var(--d,0ms) cubic-bezier(.3,1.5,.5,1) both,latido 1.6s 1s ease-in-out infinite}
+@keyframes latido{50%{transform:scale(1.08)}}
+.node.bad{animation:shake .4s}
+.nl{position:absolute;width:150px;text-align:center;font-size:16px;font-weight:700;line-height:1.1;animation:fadein .4s var(--d,0ms) both}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
 .nl small{display:block;font-weight:500;font-size:13px;color:var(--salvia)}
 .nl .st{font-size:15px;letter-spacing:1px}
 
@@ -67,21 +89,33 @@ header{display:flex;align-items:center;gap:10px}
   background:var(--coral);border:3px solid var(--cafe);border-radius:22px;box-shadow:0 6px 0 var(--cafe);text-align:left}
 .big:active{transform:translateY(4px);box-shadow:0 2px 0 var(--cafe)}
 .big.alt{background:var(--amarillo)}
+.big.nav2{background:var(--turquesa)}
 
 /* Lección */
 .top{display:flex;align-items:center;gap:10px}
 .x{font-size:26px;background:none}
 .prog{flex:1;height:22px;background:var(--papel);border:3px solid var(--cafe);border-radius:12px;overflow:hidden}
-.prog i{display:block;height:100%;background:var(--turquesa);border-right:3px solid var(--cafe);transition:width .4s}
-.q{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;overflow:auto;padding:6px 0 10px}
-.row{display:flex;align-items:center;gap:14px}
-.lm{height:min(20vh,150px);width:auto}
+.prog i{display:block;height:100%;background:var(--turquesa);border-right:3px solid var(--cafe);transition:width .5s}
+.q{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:auto;padding:6px 0 10px}
+.row{display:flex;align-items:center;gap:14px;margin-top:30px}
 .say{font-size:46px;background:var(--turquesa);border:3px solid var(--cafe);border-radius:50%;width:86px;height:86px;box-shadow:0 5px 0 var(--cafe)}
 .say:active{transform:translateY(3px);box-shadow:0 2px 0 var(--cafe)}
-.animal{font-size:100px;line-height:1.1}
-.opts{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:6px}
-.opt{width:100px;height:100px;border-radius:50%;border:5px solid var(--cafe);box-shadow:0 6px 0 var(--cafe)}
-.opt:active{transform:translateY(4px)}
+.animal{font-size:90px;line-height:1.1}
+.reveal{min-height:64px;display:flex;align-items:center;justify-content:center;gap:12px;font-size:22px;font-weight:600;text-align:center;line-height:1.15;padding:0 8px}
+.reveal .rve{font-size:56px;line-height:1;animation:pop .6s}
+.reveal b{font-size:26px}
+.opts{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.opt{width:100px;height:100px;border-radius:50%;border:5px solid var(--cafe);box-shadow:0 6px 0 var(--cafe);
+  animation:optin .4s var(--d,0ms) cubic-bezier(.3,1.6,.5,1) both}
+@keyframes optin{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+.opt:active{transform:translateY(4px);box-shadow:0 2px 0 var(--cafe)}
+.opt.sq{border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;font-size:46px}
+.opt.sq b{font-size:50px;font-weight:700}
+.opt.sq i{font-style:normal;font-size:26px;font-weight:600;opacity:.75}
+.opt.emo{font-size:58px}
+.opt.dim{opacity:.35}
+.opt.pulse{animation:pulse .8s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.14)}}
 .ok{animation:pop .5s}
 .bad{animation:shake .4s;opacity:.5}
 @keyframes pop{50%{transform:scale(1.3)}}
@@ -99,15 +133,16 @@ header{display:flex;align-items:center;gap:10px}
 .skip[hidden]{display:none}
 
 /* Final y álbum */
-.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
 .center h1{margin:0;font-size:32px}
-.center .fin{height:min(30vh,230px);width:auto;animation:pop .8s}
-.sticker{font-size:80px;animation:pop .8s;line-height:1}
+.sticker{font-size:76px;animation:pop .8s;line-height:1}
+.rw{width:84px;animation:pop .8s .3s both}
+.rw svg{display:block;width:100%;height:auto}
 .album{flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:min-content;gap:10px;overflow:auto;padding:12px 6px}
-.slot{aspect-ratio:1;background:var(--durazno);border:3px solid var(--cafe);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 4px 0 var(--cafe)}
-.slot.vacio{background:var(--papel);border-style:dashed;box-shadow:none;color:var(--salvia);font-size:26px}
-.confeti{position:fixed;top:-40px;font-size:28px;animation:cae 2.2s linear forwards;pointer-events:none;z-index:10}
-@keyframes cae{to{transform:translateY(110vh) rotate(360deg)}}
+.slot{aspect-ratio:1;background:var(--durazno);border:3px solid var(--cafe);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 4px 0 var(--cafe);animation:optin .4s var(--d,0ms) cubic-bezier(.3,1.6,.5,1) both}
+.slot.vacio{background:var(--papel);border-style:dashed;box-shadow:none;color:var(--salvia);font-size:26px;animation:none}
+.confeti{position:fixed;top:-40px;animation:cae 2.4s linear forwards;pointer-events:none;z-index:10}
+@keyframes cae{to{transform:translateY(112vh) rotate(540deg)}}
 
 /* Ajustes de voz */
 .vbox{flex:1;overflow:auto;padding:8px 2px 4px}
@@ -119,3 +154,8 @@ header{display:flex;align-items:center;gap:10px}
 .vopt{text-align:left;background:var(--papel);border:3px solid var(--cafe);border-radius:14px;padding:9px 12px;font-size:16px}
 .vopt small{display:block;font-weight:500;color:var(--salvia)}
 .vopt.on{background:var(--turquesa)}
+
+/* Si el celular pide menos movimiento, se quitan las animaciones */
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}

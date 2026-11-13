@@ -1,4 +1,4 @@
-const CACHE = 'lorito-v3';
+const CACHE = 'lorito-v4';
 const FILES = [
   './', 'index.html', 'style.css', 'app.js', 'manifest.json',
   'icon-192.png', 'icon-512.png',
