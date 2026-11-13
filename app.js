@@ -141,28 +141,55 @@ function scoreVoice(v) {
   let s = 0;
   const l = (v.lang || '').replace('_', '-').toLowerCase();
   if (l === 'es-mx') s += 30; else if (l === 'es-419') s += 25; else if (l === 'es-us') s += 20; else s += 5;
-  if (/natural|neural|online|enhanced|premium|wavenet/i.test(v.name)) s += 40;
-  if (v.localService === false) s += 15;   // las voces "en línea" suenan mucho mejor
+  if (/natural|neural|enhanced|premium|wavenet/i.test(v.name)) s += 40;
   if (/google/i.test(v.name)) s += 10;
+  // "natural": prefiere voces en línea (suenan mejor pero tardan en responder)
+  // "rapida": prefiere voces guardadas en el celular (responden al instante)
+  if (state.voice.mode === 'rapida') { if (v.localService !== false) s += 60; }
+  else if (v.localService === false) s += 15;
   return s;
 }
-function pickVoice() {
-  if (state.voice.uri) {
+function pickVoice(onlyLocal) {
+  if (!onlyLocal && state.voice.uri) {
     const v = VOICES.find(x => x.voiceURI === state.voice.uri);
     if (v) return v;
   }
-  return [...VOICES].sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
+  const pool = onlyLocal ? VOICES.filter(v => v.localService !== false) : VOICES;
+  return [...pool].sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
 }
+let lastU, sayId = 0;   // se guarda la frase en curso: si no, Chrome a veces la "olvida" y no avisa cuando termina
+// Con el primer toque se "despierta" la voz del celular, para que la primera frase no tarde
+function warmUp() {
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {}
+}
+document.addEventListener('pointerdown', warmUp, {once: true});
 function say(text, onend) {
   try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    const v = pickVoice();
-    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'es-MX';
-    u.rate = state.voice.rate || 0.9;
-    u.pitch = state.voice.pitch || 1.15;
-    if (onend) { u.onend = onend; u.onerror = onend; }
-    speechSynthesis.speak(u);
+    const ss = speechSynthesis;
+    const id = ++sayId;                      // cada frase nueva anula a las anteriores
+    const busy = ss.speaking || ss.pending;
+    if (busy) ss.cancel();
+    let finished = false;
+    const done = () => { if (finished) return; finished = true; if (onend) onend(); };
+    const speak = voice => {
+      const u = new SpeechSynthesisUtterance(text);
+      lastU = u;
+      if (voice) { try { u.voice = voice; } catch (e) {} u.lang = voice.lang; } else u.lang = 'es-MX';
+      u.rate = state.voice.rate || 0.95;
+      u.pitch = state.voice.pitch || 1;     // 1 = tono sin procesar (suena menos artificial)
+      u.onend = done;
+      u.onerror = e => {
+        // si falló una voz en línea (por ejemplo sin internet), se repite con una voz del celular
+        if (voice && voice.localService === false && e && e.error !== 'canceled' && e.error !== 'interrupted') {
+          const loc = pickVoice(true);
+          if (loc && loc !== voice && id === sayId) return speak(loc);
+        }
+        done();
+      };
+      ss.speak(u);
+    };
+    const v = (navigator.onLine === false) ? (pickVoice(true) || pickVoice()) : pickVoice();
+    busy ? setTimeout(() => { id === sayId ? speak(v) : done(); }, 60) : speak(v);   // Chrome ignora un speak() pegado a un cancel()
   } catch (e) { if (onend) onend(); }
 }
 
@@ -461,7 +488,7 @@ function startLesson(lesson) {
       </div>`);
     $('salir').onclick = () => { alive = false; try { speechSynthesis.cancel(); } catch (e) {} home(); };
     $('oir').onclick = () => { sfx.tap(); say(q.speak); };
-    setTimeout(() => { if (alive) say(q.speak); }, 400);
+    setTimeout(() => { if (alive) say(q.speak); }, 150);
     document.querySelectorAll('.opt').forEach(b => b.onclick = () => {
       if (locked) return;
       if (b.dataset.c === q.answer) {
@@ -518,7 +545,7 @@ function voiceLesson(lesson) {
     $('salir').onclick = () => { alive = false; stop(); try { speechSynthesis.cancel(); } catch (e) {} home(); };
     $('oir').onclick = () => { sfx.tap(); say(it.intro); };
     $('skip').onclick = () => { sfx.tap(); stop(); next(); };
-    setTimeout(() => { if (alive) say(it.intro); }, 400);
+    setTimeout(() => { if (alive) say(it.intro); }, 150);
 
     function good() {
       sfx.ok();
@@ -607,13 +634,14 @@ function albumScreen() {
 function voiceScreen() {
   loadVoices();
   const cur = pickVoice();
-  const rate = state.voice.rate || 0.9, pitch = state.voice.pitch || 1.15;
+  const rate = state.voice.rate || 0.95, pitch = state.voice.pitch || 1, rapida = state.voice.mode === 'rapida';
   render(`
     <div class="top"><h2 style="margin:4px 0">🔊 Voz de Lorito</h2></div>
     <div class="vbox">
-      <div class="tip">Si la voz suena robótica, prueba otra de la lista. Para voces mejores: Ajustes de Android → Texto a voz → Google → Instalar datos de voz → Español (México).</div>
+      <div class="tip">Prueba los dos modos: la voz <b>natural</b> suena mejor pero tarda un poco en responder; la <b>rápida</b> responde al instante. También puedes elegir otra voz de la lista. Para voces mejores: Ajustes de Android → Texto a voz → Google → Instalar datos de voz → Español (México).</div>
       <div class="sl"><label>Velocidad <span id="rv">${rate}</span></label><input type="range" id="rate" min="0.7" max="1.1" step="0.05" value="${rate}"></div>
       <div class="sl"><label>Tono <span id="pv">${pitch}</span></label><input type="range" id="pitch" min="0.9" max="1.5" step="0.05" value="${pitch}"></div>
+      <button class="big nav2" id="modo" style="justify-content:center;margin-bottom:12px">${rapida ? '⚡ Voz: rápida (sin esperar)' : '🌿 Voz: natural (necesita internet)'}</button>
       <button class="big alt" id="probar" style="justify-content:center">🔊 Probar voz</button>
       <button class="big nav2" id="snd" style="justify-content:center;margin-top:12px"></button>
       <div class="vlist">
@@ -627,6 +655,7 @@ function voiceScreen() {
   const paintSnd = () => { $('snd').textContent = state.mute ? '🔕 Sonidos: apagados' : '🔔 Sonidos: encendidos'; };
   paintSnd();
   $('snd').onclick = () => { state.mute = !state.mute; save(); paintSnd(); sfx.chirp(); };
+  $('modo').onclick = () => { state.voice.mode = rapida ? 'natural' : 'rapida'; delete state.voice.uri; save(); voiceScreen(); setTimeout(test, 100); };
   $('probar').onclick = test;
   $('rate').oninput = e => { state.voice.rate = +e.target.value; $('rv').textContent = e.target.value; save(); };
   $('pitch').oninput = e => { state.voice.pitch = +e.target.value; $('pv').textContent = e.target.value; save(); };
